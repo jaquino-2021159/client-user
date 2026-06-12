@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+
 import {
     View,
     Text,
@@ -8,83 +8,100 @@ import {
     Platform,
     ScrollView,
     Alert
-} from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
-import Input from '../../../shared/components/common/Input';
-import Button from '../../../shared/components/common/Button';
- 
-import KinalSportsLogo from '../../../../assets/kinal_sports.png';
- 
+} from "react-native"
+
+import { useForm, Controller } from "react-hook-form"
+import { COLORS, SPACING, FONT_SIZE } from "../../../shared/constants/theme"
+import Input from "../../../shared/components/Input"
+import Button from "../../../shared/components/Button"
+import { useAuth } from "../hooks/useAuth"
+
+import kinalSportsLogo from "../../../../assets/kinal_sports.png"
+
 const LoginScreen = ({ navigation }) => {
+
+    const { handleLogin, loading } = useAuth();
+
     const { control, handleSubmit, formState: { errors } } = useForm({
         defaultValues: {
-            emailOrUsername: '',
-            password: ''
+            emailOrUsername: "",
+            password: ""
         }
-    });
- 
+    })
+
     const onSubmit = async (data) => {
- 
+        try {
+            await handleLogin(data)
+        } catch (error) {
+            console.error(error);
+            const message =
+                error.response?.data?.message || "Error al iniciar sesion"
+                Alert.alert("Error", message)
+        }
     }
- 
+
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.container}
         >
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <View style={styles.card}>
-                    <View style={styles.header}>
-                        <Image
-                            source={KinalSportsLogo}
-                            style={styles.logo}
-                            resizeMode="contain"
-                        />
-                        <Text style={styles.subtitle}>Bienvenido de Nuevo</Text>
-                    </View>
- 
-                    <View style={styles.form}>
-                        <Controller
-                            control={control}
-                            rules={{ required: "Este campo es obligatorio" }}
-                            render={({ field: { onChange, value } }) => (
-                                <Input
-                                    label="Correo Electrónico o Nombre de Usuario"
-                                    placeholder="Ingresa tu correo o nombre de usuario"
-                                    value={value}
-                                    onChangeText={onChange}
-                                    error={errors.emailOrUsername?.message}
-                                />
-                            )}
-                            name="emailOrUsername"
-                        />
-                        <Controller
-                            control={control}
-                            rules={{ required: "Este campo es obligatorio" }}
-                            render={({ field: { onChange, value } }) => (
-                                <Input
-                                    label="Contraseña"
-                                    placeholder="● ● ● ● ● ●"
-                                    value={value}
-                                    onChangeText={onChange}
-                                    secureTextEntry
-                                    error={errors.password?.message}
-                                />
-                            )}
-                            name="password"
-                        />
- 
-                        <Button
-                            title="Iniciar Sesión"
-                            onPress={handleSubmit(onSubmit)}
-                            style={styles.button}
-                        />
- 
-                        <View style={styles.footer}>
-                            <Text style={styles.footerText}>No tienes una cuenta?</Text>
-                            <Text style={styles.link} onPress={() => navigation.navigate("Register")}>Regístrate aquí</Text>
-                        </View>
+                <View style={styles.header}>
+                    <Image
+                        source={kinalSportsLogo}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
+                </View>
+
+                <View>
+                    <Controller
+                        control={control}
+                        rules={{ required: "Email o usuario requerido" }}
+                        render={({ field: { onChange, value } }) => (
+                            <Input
+                                label="Email o usuario"
+                                placeholder="correo@ejemplo.com o usuario"
+                                onChangeText={onChange}
+                                value={value}
+                                autoCapitalize="none"
+                                error={errors.emailOrUsername?.message}
+                            />
+                        )}
+                        name="emailOrUsername"
+                    />
+
+                    <Controller
+                        control={control}
+                        rules={{ required: "Contraseña requerida" }}
+                        render={({ field: { onChange, value } }) => (
+                            <Input
+                                label="Contraseña"
+                                placeholder="••••••••"
+                                secureTextEntry
+                                onChangeText={onChange}
+                                value={value}
+                                autoCapitalize="none"
+                                error={errors.password?.message}
+                            />
+                        )}
+                        name="password"
+                    />
+
+                    <Button
+                        title="Iniciar Sesión"
+                        onPress={handleSubmit(onSubmit)}
+                        style={styles.button}                    
+                    />
+
+                    <View style={styles.footer}>
+                        <Text sytle={styles.footerText}>¿No tienes cuenta?</Text>
+                        <Text
+                            style={styles.link}
+                            onPress={() => navigation.navigate("Register")}
+                        >
+                            Registrate
+                        </Text>
                     </View>
                 </View>
             </ScrollView>
@@ -101,7 +118,6 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         padding: SPACING.xl,
         justifyContent: "center",
-        alignItems: "center",
     },
     header: {
         alignItems: "center",
@@ -117,14 +133,6 @@ const styles = StyleSheet.create({
         color: COLORS.secondary,
         marginTop: SPACING.sm,
     },
-    card: {
-        width: "100%",
-        maxWidth: 440,
-        backgroundColor: COLORS.surface,
-        borderRadius: 28,
-        padding: SPACING.xl,
-        ...SHADOWS.md,
-    },
     form: {
         width: "100%",
     },
@@ -132,14 +140,13 @@ const styles = StyleSheet.create({
         marginTop: SPACING.lg,
     },
     footer: {
-        flexDirection: "column",
-        alignItems: "center",
+        flexDirection: "row",
+        justifyContent: "center",
         marginTop: SPACING.xl,
     },
     footerText: {
         fontSize: FONT_SIZE.md,
         color: COLORS.textLight,
-        marginBottom: SPACING.xs,
     },
     link: {
         fontSize: FONT_SIZE.md,
@@ -147,7 +154,5 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
 });
- 
- 
+
 export default LoginScreen;
- 

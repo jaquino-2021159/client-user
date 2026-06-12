@@ -1,33 +1,55 @@
-﻿import React from 'react';
+import React, { useState } from "react";
 import {
     View,
     Text,
     StyleSheet,
-    Image,
     KeyboardAvoidingView,
     Platform,
-    ScrollView
-} from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme';
-import Input from '../../../shared/components/common/Input';
-import Button from '../../../shared/components/common/Button';
+    ScrollView,
+    Alert,
+    Image,
+} from "react-native";
+import { useForm, Controller } from "react-hook-form";
+import { COLORS, SPACING, FONT_SIZE } from "../../../shared/constants/theme.js";
+import Input from "../../../shared/components/Input.jsx";
+import Button from "../../../shared/components/Button.jsx";
+import { useAuth } from "../hooks/useAuth.js";
 
-import KinalSportsLogo from '../../../../assets/kinal_sports.png';
+import kinalSportsLogo from "../../../../assets/kinal_sports.png"
 
 const RegisterScreen = ({ navigation }) => {
-    const { control, handleSubmit, formState: { errors } } = useForm({
+
+    const { handleRegister, loading } = useAuth()
+    const {
+        control,
+        handleSubmit,
+        formState: { errors },
+    } = useForm({
         defaultValues: {
-            fullName: '',
-            email: '',
-            password: '',
-            confirmPassword: ''
-        }
+            name: "",
+            surname: "",
+            username: "",
+            email: "",
+            password: "",
+            phone: "",
+        },
     });
 
     const onSubmit = async (data) => {
-        // Aquí puedes agregar la lógica de registro
-    }
+        try {
+            await handleRegister(data)
+
+            Alert.alert(
+                "Registro exitoso",
+                "Tu cuenta ha sido creada. Ahora puedes iniciar sesion"
+                [{ text: "OK", onPress: () => navigation.navigate("Login")}]
+            )
+        } catch (error) {
+            console.error(error)
+            const message = error.response?.data?.message || "Error al registrarse"
+            Alert.alert("Error", message)
+        }
+    };
 
     return (
         <KeyboardAvoidingView
@@ -35,87 +57,140 @@ const RegisterScreen = ({ navigation }) => {
             style={styles.container}
         >
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <View style={styles.card}>
-                    <View style={styles.header}>
-                        <Image
-                            source={KinalSportsLogo}
-                            style={styles.logo}
-                            resizeMode="contain"
-                        />
-                        <Text style={styles.subtitle}>Crea tu cuenta</Text>
-                    </View>
+                <View style={styles.header}>
+                    <Image
+                        source={kinalSportsLogo}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
+                    <Text style={styles.subtitle}>Únete a Kinal Sports</Text>
+                </View>
 
-                    <View style={styles.form}>
-                        <Controller
-                            control={control}
-                            rules={{ required: "Este campo es obligatorio" }}
-                            render={({ field: { onChange, value } }) => (
-                                <Input
-                                    label="Nombre completo"
-                                    placeholder="Ingresa tu nombre"
-                                    value={value}
-                                    onChangeText={onChange}
-                                    error={errors.fullName?.message}
-                                />
-                            )}
-                            name="fullName"
-                        />
-                        <Controller
-                            control={control}
-                            rules={{ required: "Este campo es obligatorio" }}
-                            render={({ field: { onChange, value } }) => (
-                                <Input
-                                    label="Correo Electrónico"
-                                    placeholder="Ingresa tu correo"
-                                    value={value}
-                                    onChangeText={onChange}
-                                    error={errors.email?.message}
-                                />
-                            )}
-                            name="email"
-                        />
-                        <Controller
-                            control={control}
-                            rules={{ required: "Este campo es obligatorio" }}
-                            render={({ field: { onChange, value } }) => (
-                                <Input
-                                    label="Contraseña"
-                                    placeholder="● ● ● ● ● ●"
-                                    value={value}
-                                    onChangeText={onChange}
-                                    secureTextEntry
-                                    error={errors.password?.message}
-                                />
-                            )}
-                            name="password"
-                        />
-                        <Controller
-                            control={control}
-                            rules={{ required: "Este campo es obligatorio" }}
-                            render={({ field: { onChange, value } }) => (
-                                <Input
-                                    label="Confirmar contraseña"
-                                    placeholder="Vuelve a escribir tu contraseña"
-                                    value={value}
-                                    onChangeText={onChange}
-                                    secureTextEntry
-                                    error={errors.confirmPassword?.message}
-                                />
-                            )}
-                            name="confirmPassword"
-                        />
+                <View style={styles.form}>
+                    <Controller
+                        control={control}
+                        rules={{ required: "Nombre requerido" }}
+                        render={({ field: { onChange, value } }) => (
+                            <Input
+                                label="Nombre"
+                                placeholder="Tu nombre"
+                                onChangeText={onChange}
+                                value={value}
+                                error={errors.name?.message}
+                            />
+                        )}
+                        name="name"
+                    />
 
-                        <Button
-                            title="Registrarme"
-                            onPress={handleSubmit(onSubmit)}
-                            style={styles.button}
-                        />
+                    <Controller
+                        control={control}
+                        rules={{ required: "Apellido requerido" }}
+                        render={({ field: { onChange, value } }) => (
+                            <Input
+                                label="Apellido"
+                                placeholder="Tu apellido"
+                                onChangeText={onChange}
+                                value={value}
+                                error={errors.surname?.message}
+                            />
+                        )}
+                        name="surname"
+                    />
 
-                        <View style={styles.footer}>
-                            <Text style={styles.footerText}>¿Ya tienes una cuenta? 
-                                <Text style={styles.link} onPress={() => navigation.navigate("Login")}>Inicia sesión</Text>
-                            </Text>
-                        </View>
+                    <Controller
+                        control={control}
+                        rules={{ required: "Usuario requerido" }}
+                        render={({ field: { onChange, value } }) => (
+                            <Input
+                                label="Usuario"
+                                placeholder="nombre_usuario"
+                                onChangeText={onChange}
+                                value={value}
+                                autoCapitalize="none"
+                                error={errors.username?.message}
+                            />
+                        )}
+                        name="username"
+                    />
+
+                    <Controller
+                        control={control}
+                        rules={{
+                            required: "Teléfono requerido",
+                            pattern: {
+                                value: /^\d{8}$/,
+                                message: "Debe tener exactamente 8 dígitos",
+                            },
+                        }}
+                        render={({ field: { onChange, value } }) => (
+                            <Input
+                                label="Teléfono"
+                                placeholder="Ej: 12345678"
+                                keyboardType="numeric"
+                                onChangeText={onChange}
+                                value={value}
+                                error={errors.phone?.message}
+                            />
+                        )}
+                        name="phone"
+                    />
+
+                    <Controller
+                        control={control}
+                        rules={{
+                            required: "Email requerido",
+                            pattern: {
+                                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                message: "Email inválido",
+                            },
+                        }}
+                        render={({ field: { onChange, value } }) => (
+                            <Input
+                                label="Email"
+                                placeholder="correo@ejemplo.com"
+                                onChangeText={onChange}
+                                value={value}
+                                autoCapitalize="none"
+                                keyboardType="email-address"
+                                error={errors.email?.message}
+                            />
+                        )}
+                        name="email"
+                    />
+
+                    <Controller
+                        control={control}
+                        rules={{
+                            required: "Contraseña requerida",
+                            minLength: { value: 6, message: "Mínimo 6 caracteres" },
+                        }}
+                        render={({ field: { onChange, value } }) => (
+                            <Input
+                                label="Contraseña"
+                                placeholder="••••••••"
+                                secureTextEntry
+                                onChangeText={onChange}
+                                value={value}
+                                error={errors.password?.message}
+                            />
+                        )}
+                        name="password"
+                    />
+
+                    <Button
+                        title="Registrarse"
+                        onPress={handleSubmit(onSubmit)}
+                        style={styles.button}
+                    />
+
+                    <View style={styles.footer}>
+                        <Text style={styles.footerText}>¿Ya tienes cuenta? </Text>
+                        <Text
+                            style={styles.link}
+                            onPress={() => navigation.navigate("Login")}
+                        >
+                            Inicia Sesión
+                        </Text>
                     </View>
                 </View>
             </ScrollView>
@@ -131,30 +206,22 @@ const styles = StyleSheet.create({
     scrollContent: {
         flexGrow: 1,
         padding: SPACING.xl,
-        justifyContent: "center",
-        alignItems: "center",
+        paddingVertical: SPACING.xxl,
     },
     header: {
         alignItems: "center",
-        marginBottom: SPACING.xxl,
+        marginBottom: SPACING.xl,
+        marginTop: SPACING.lg,
     },
     logo: {
-        height: 80,
-        width: 200,
-        marginBottom: SPACING.sm,
+        height: 60,
+        width: 180,
+        marginBottom: SPACING.xs,
     },
     subtitle: {
-        fontSize: FONT_SIZE.lg,
+        fontSize: FONT_SIZE.md,
         color: COLORS.secondary,
         marginTop: SPACING.sm,
-    },
-    card: {
-        width: "100%",
-        maxWidth: 440,
-        backgroundColor: COLORS.surface,
-        borderRadius: 28,
-        padding: SPACING.xl,
-        ...SHADOWS.md,
     },
     form: {
         width: "100%",
@@ -166,6 +233,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "center",
         marginTop: SPACING.xl,
+        paddingBottom: SPACING.xxl,
     },
     footerText: {
         fontSize: FONT_SIZE.md,
